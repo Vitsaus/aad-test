@@ -1,0 +1,21 @@
+Display name
+test-hello
+
+Application (client) ID
+324ffd61-fb09-4d98-b01f-dfc75bf88c99
+
+Directory (tenant) ID
+f4f0b5bf-f3b5-44c9-af62-63ad9dc56371
+
+Object ID
+9ee2a3bb-7a45-4684-9732-fbbedf9ff3bd
+
+client secret:
+ID
+5e293d93-d28e-4857-a8e0-ce08f452799d
+
+value:
+Nz-I5cVyt252iXJr-_ZLL4F-Exe8B1VsOm
+
+test user:
+test / password1!
