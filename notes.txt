@@ -16,6 +16,3 @@ ID
 
 value:
 Nz-I5cVyt252iXJr-_ZLL4F-Exe8B1VsOm
-
-test user:
-test / password1!
