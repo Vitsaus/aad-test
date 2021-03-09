@@ -1,5 +1,5 @@
-const express = require("express");
 const msal = require('@azure/msal-node');
+const Hapi = require('@hapi/hapi');
 
 // Azure tenant id
 const AUTHORITY = "https://login.microsoftonline.com/f4f0b5bf-f3b5-44c9-af62-63ad9dc56371";
@@ -18,60 +18,96 @@ const SCOPES = ['user.read'];
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-const config = {
-    auth: {
-        clientId: CLIENT_ID,
-        authority: AUTHORITY,
-        clientSecret: CLIENT_SECRET
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
+const init = async () => {
+
+    const server = Hapi.server({
+        port: SERVER_PORT,
+        host: 'localhost'
+    });
+
+
+    const config = {
+        auth: {
+            clientId: CLIENT_ID,
+            authority: AUTHORITY,
+            clientSecret: CLIENT_SECRET
+        },
+        system: {
+            loggerOptions: {
+                loggerCallback(loglevel, message) {
+                    console.log(message);
+                },
+                piiLoggingEnabled: false,
+                logLevel: msal.LogLevel.Verbose,
+            }
         }
-    }
+    };
+
+    const pca = new msal.ConfidentialClientApplication(config);
+
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler: async (request, h) => {
+            try {
+                const authCodeUrlParameters = {
+                    scopes: SCOPES,
+                    loginHint: PREFERRED_USERNAME,
+                    redirectUri: REDIRECT_URI,
+                    prompt: 'login',
+                };
+                const response = await pca.getAuthCodeUrl(authCodeUrlParameters);
+                console.log('got auth code redirect url response', response);
+                return h.redirect(response);
+            } catch (e) {
+                return h.response({
+                    error: 'something failed!',
+                })
+            }
+
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/redirect',
+        handler: async (request, h) => {
+
+            try {
+
+                const tokenRequest = {
+                    code: request.query.code,
+                    scopes: SCOPES,
+                    redirectUri: REDIRECT_URI,
+                };
+
+                const response = await pca.acquireTokenByCode(tokenRequest);
+
+                return h.response({
+                    accountObjectId: response.account.localAccountId,
+                    email: response.account.username
+                });
+
+            } catch (e) {
+                console.log(e);
+                return h.response({
+                    error: "something went wrong!"
+                })
+            }
+
+        }
+    });
+
+    await server.start();
+
+    console.log('Server running on %s', server.info.uri);
+
 };
 
-const pca = new msal.ConfidentialClientApplication(config);
+process.on('unhandledRejection', (err) => {
 
-const app = express();
-
-app.get('/', (req, res) => {
-    const authCodeUrlParameters = {
-        scopes: SCOPES,
-        loginHint: PREFERRED_USERNAME,
-        redirectUri: REDIRECT_URI,
-    };
-
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-        console.log('got auth code redirect url response', response);
-        res.redirect(response);
-    }).catch((error) => console.log(JSON.stringify(error)));
+    console.log(err);
+    process.exit(1);
 });
 
-app.get('/redirect', (req, res) => {
-    const tokenRequest = {
-        code: req.query.code,
-        scopes: SCOPES,
-        redirectUri: REDIRECT_URI,
-    };
-
-    pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log("\nResponse: \n:", response);
-        res.json({
-            accountObjectId: response.account.localAccountId,
-            email: response.account.username
-        });
-    }).catch((error) => {
-        console.log(error);
-        res.status(500).send({
-            error: "something went wrong!"
-        });
-    });
-});
-
-
-app.listen(SERVER_PORT, () => console.log(`Server listening at ${SERVER_PORT}!`))
+init();
