@@ -7,7 +7,7 @@ const AUTHORITY = "https://login.microsoftonline.com/f4f0b5bf-f3b5-44c9-af62-63a
 // Application id
 const CLIENT_ID = "324ffd61-fb09-4d98-b01f-dfc75bf88c99";
 
-// Application secret value
+// Application secret value, possibly cert in our case?
 const CLIENT_SECRET = "Nz-I5cVyt252iXJr-_ZLL4F-Exe8B1VsOm";
 
 const PREFERRED_USERNAME = "ville.i.takala@gmail.com";
@@ -24,15 +24,15 @@ const config = {
         authority: AUTHORITY,
         clientSecret: CLIENT_SECRET
     },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    }
 };
 
 const pca = new msal.ConfidentialClientApplication(config);
@@ -74,4 +74,4 @@ app.get('/redirect', (req, res) => {
 });
 
 
-app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
+app.listen(SERVER_PORT, () => console.log(`Server listening at ${SERVER_PORT}!`))
