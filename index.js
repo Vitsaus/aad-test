@@ -50,19 +50,18 @@ const init = async () => {
         path: '/',
         handler: async (request, h) => {
             try {
-                const authCodeUrlParameters = {
+                const response = await pca.getAuthCodeUrl({
                     scopes: SCOPES,
                     loginHint: PREFERRED_USERNAME,
                     redirectUri: REDIRECT_URI,
                     prompt: 'login',
-                };
-                const response = await pca.getAuthCodeUrl(authCodeUrlParameters);
+                });
                 console.log('got auth code redirect url response', response);
                 return h.redirect(response);
             } catch (e) {
                 return h.response({
                     error: 'something failed!',
-                })
+                });
             }
 
         }
@@ -75,13 +74,11 @@ const init = async () => {
 
             try {
 
-                const tokenRequest = {
+                const response = await pca.acquireTokenByCode({
                     code: request.query.code,
                     scopes: SCOPES,
                     redirectUri: REDIRECT_URI,
-                };
-
-                const response = await pca.acquireTokenByCode(tokenRequest);
+                });
 
                 return h.response({
                     accountObjectId: response.account.localAccountId,
@@ -92,7 +89,7 @@ const init = async () => {
                 console.log(e);
                 return h.response({
                     error: "something went wrong!"
-                })
+                });
             }
 
         }
