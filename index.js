@@ -26,7 +26,7 @@ const init = async () => {
     });
 
 
-    const config = {
+    const pca = new msal.ConfidentialClientApplication({
         auth: {
             clientId: CLIENT_ID,
             authority: AUTHORITY,
@@ -41,9 +41,7 @@ const init = async () => {
                 logLevel: msal.LogLevel.Verbose,
             }
         }
-    };
-
-    const pca = new msal.ConfidentialClientApplication(config);
+    });
 
     server.route({
         method: 'GET',
@@ -102,8 +100,7 @@ const init = async () => {
 };
 
 process.on('unhandledRejection', (err) => {
-
-    console.log(err);
+    console.log('unhandled error', err);
     process.exit(1);
 });
 
